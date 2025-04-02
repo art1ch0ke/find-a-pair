@@ -1,11 +1,11 @@
-window.addEventListener("DOMContentLoaded", ()=> {
+window.addEventListener("DOMContentLoaded", () => {
     // 📌 Массив с эмодзи (пары)
     const emojis = ["🍎", "🍌", "🍇", "🍉", "🍒", "🍍", "🥝", "🍑"];
     let cards = [];
 
     let firstCard = null;
     let secondCard = null;
-    let isBoardLocked = true; // Блокируем клики до старта
+    let isBoardLocked = true;
     let startTime;
     let timerInterval;
 
@@ -13,45 +13,39 @@ window.addEventListener("DOMContentLoaded", ()=> {
     const startButton = document.getElementById("start-btn");
     const timerDisplay = document.getElementById("timer");
 
-     // Создаем модальное окно
-     const modal = document.createElement("div");
-     modal.id = "win-modal";
-     modal.innerHTML = `
-         <div class="modal-content">
-             <h2>🎉 You Win! 🎉</h2>
-             <p id="win-message"></p>
-             <button id="close-modal">OK</button>
-         </div>
-     `;
-     document.body.appendChild(modal);
- 
-      // Close modal on "OK" button click
-      document.getElementById("close-modal").addEventListener("click", closeModal);
+    // 📌 Создаем модальное окно
+    function createModal() {
+        const modal = document.createElement("div");
+        modal.id = "win-modal";
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>🎉 You Win! 🎉</h2>
+                <p id="win-message"></p>
+                <button id="close-modal">OK</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
 
-      // Close modal on background click
-      modal.addEventListener("click", (event) => {
-          if (event.target === modal) closeModal();
-      });
-  
-      // Close modal on "Esc" key press
-      document.addEventListener("keydown", (event) => {
-          if (event.key === "Escape") closeModal();
-      });
-  
-      function closeModal() {
-          modal.style.display = "none";
-      }
+        document.getElementById("close-modal").addEventListener("click", closeModal);
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") closeModal();
+        });
+    }
 
-    // 📌 Перемешивание массива (понятный метод)
+    function closeModal() {
+        document.getElementById("win-modal").style.display = "none";
+    }
+
+    // 📌 Перемешивание массива
     function shuffle(array) {
         let shuffled = [];
         let original = [...array];
-
         while (original.length > 0) {
-            // Тасуем карты
             let randomIndex = Math.floor(Math.random() * original.length);
-            let item = original.splice(randomIndex, 1);
-            shuffled.push(item);
+            shuffled.push(original.splice(randomIndex, 1)[0]);
         }
         return shuffled;
     }
@@ -60,11 +54,10 @@ window.addEventListener("DOMContentLoaded", ()=> {
     function createBoard() {
         board.innerHTML = "";
         cards = shuffle([...emojis, ...emojis]);
-
         cards.forEach((emoji) => {
             const card = document.createElement("div");
             card.classList.add("card");
-            card.textContent = "❓"; // Изначально скрыт
+            card.textContent = "❓";
             board.appendChild(card);
         });
     }
@@ -73,32 +66,22 @@ window.addEventListener("DOMContentLoaded", ()=> {
     function startGame() {
         startButton.textContent = "Reset";
         startButton.removeEventListener("click", startGame);
-        startButton.addEventListener("click", () => location.reload()); // Перезагружает страницу
-        timerDisplay.style.visibility = "visible"; // Показываем таймер
-        isBoardLocked = true; // Блокируем клики
+        startButton.addEventListener("click", () => location.reload());
+        timerDisplay.style.visibility = "visible";
+        isBoardLocked = true;
 
-        // Открываем все карточки на 1 секунду
         document.querySelectorAll(".card").forEach((card, index) => {
             card.classList.add("flipped");
-            setTimeout(() => {
-                card.textContent = cards[index];
-            }, 250); // Показываем эмодзи
+            setTimeout(() => { card.textContent = cards[index]; }, 250);
         });
 
         setTimeout(() => {
             document.querySelectorAll(".card").forEach((card, index) => {
                 card.classList.remove("flipped");
-                setTimeout(()=> {
-                    card.textContent = "❓"; // Прячем обратно
-                }, 250);
-                board.addEventListener("click", (event) => {
-                    const target = event.target;
-                    if(target && target == card) {
-                        flipCard(card, index)
-                    }
-                });
+                setTimeout(() => { card.textContent = "❓"; }, 250);
+                card.addEventListener("click", () => flipCard(card, index));
             });
-            isBoardLocked = false; // Разблокируем клики
+            isBoardLocked = false;
             startTimer();
         }, 3000);
     }
@@ -112,23 +95,14 @@ window.addEventListener("DOMContentLoaded", ()=> {
     // 📌 Обновление таймера
     function updateTimer() {
         let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-        let minutes = Math.floor(elapsedTime / 60);
-        let seconds = elapsedTime % 60;
-        if (minutes > 0) {
-            timerDisplay.textContent = `Time: ${minutes}m ${seconds}s`;
-        } else {
-            timerDisplay.textContent = `Time: ${seconds} sec`;
-        }
+        timerDisplay.textContent = `Time: ${elapsedTime} sec`;
     }
 
-    // 📌 Проверка карточек
+    // 📌 Переворачивание карточек
     function flipCard(card, index) {
         if (isBoardLocked || card === firstCard || card.textContent !== "❓") return;
-
         card.classList.add("flipped");
-        setTimeout(() => {
-            card.textContent = cards[index];
-        }, 250);
+        setTimeout(() => { card.textContent = cards[index]; }, 250);
 
         if (!firstCard) {
             firstCard = card;
@@ -145,13 +119,15 @@ window.addEventListener("DOMContentLoaded", ()=> {
             resetSelection();
             checkWin();
         } else {
-            firstCard.classList.remove("flipped");
-            secondCard.classList.remove("flipped");
             setTimeout(() => {
-                firstCard.textContent = "❓";
-                secondCard.textContent = "❓";
-                resetSelection();
-            }, 250);
+                firstCard.classList.remove("flipped");
+                secondCard.classList.remove("flipped");
+                setTimeout(() => {
+                    firstCard.textContent = "❓";
+                    secondCard.textContent = "❓";
+                    resetSelection();
+                }, 250);
+            }, 500);
         }
     }
 
@@ -172,11 +148,11 @@ window.addEventListener("DOMContentLoaded", ()=> {
     function showWinModal() {
         const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
         document.getElementById("win-message").textContent = `You finished in ${elapsedTime} seconds! 🎯`;
-        modal.style.display = "flex";
+        document.getElementById("win-modal").style.display = "flex";
     }
 
     // 📌 Запуск
+    createModal();
     startButton.addEventListener("click", startGame);
     createBoard();
-
 });

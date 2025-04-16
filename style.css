@@ -153,3 +153,58 @@ h1 {
 #close-modal:hover {
     transform: scale(1.1);
 }
+
+/* 📱 Маленькие экраны: телефоны */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px 10px;
+    }
+
+    #game-board {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        max-width: 100%;
+    }
+
+    .card {
+        width: 60px;
+        height: 60px;
+        font-size: 1em;
+    }
+
+    #start-btn, #close-modal {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+
+    #timer {
+        font-size: 16px;
+    }
+
+    .modal-content {
+        padding: 15px;
+    }
+
+    .modal-content h2 {
+        font-size: 20px;
+    }
+
+    .modal-content p {
+        font-size: 16px;
+    }
+}
+
+/* 💊 Средние экраны: планшеты */
+@media (min-width: 601px) and (max-width: 1024px) {
+    #game-board {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+
+    .card {
+        width: 70px;
+        height: 70px;
+        font-size: 1.1em;
+    }
+}
+
